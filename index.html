@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zelda's Birthday Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+  /* Layout: one centered column. An envelope opens into a card: cake, message, decision log,
+     certificate, fortune, gift status, and a swaying garden. Flowers fall over everything. Purple throughout. */
+  :root {
+    --bg: #F3ECFB;
+    --surface: #FFFFFF;
+    --ink: #2A1740;
+    --muted: #6B5A82;
+    --accent: #7B3FD4;
+    --on-accent: #FFFFFF;
+    --accent-soft: #E4D5F7;
+    --accent-soft-2: #D3BCF0;
+    --line: #D9C7F2;
+    --flame: #F4B63F;
+    --good: #1F8A5B;
+    --stem: #5BA878;
+    --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+    --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1A0F2B; --surface: #2A1A44; --ink: #F3EAFF; --muted: #B7A5D3;
+      --accent: #B98CFF; --on-accent: #1A0F2B; --accent-soft: #3B2763; --accent-soft-2: #4B3380;
+      --line: #4B3380; --flame: #FFC95C; --good: #62D69B; --stem: #4A9A6C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1A0F2B; --surface: #2A1A44; --ink: #F3EAFF; --muted: #B7A5D3;
+    --accent: #B98CFF; --on-accent: #1A0F2B; --accent-soft: #3B2763; --accent-soft-2: #4B3380;
+    --line: #4B3380; --flame: #FFC95C; --good: #62D69B; --stem: #4A9A6C;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.6;
+    padding-block: 32px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    min-height: 100vh;
+  }
+  main { max-width: 520px; margin: 0 auto; display: grid; gap: 20px; }
+  h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.1; }
+  p { margin: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+
+  /* Envelope */
+  #envelope-view { display: grid; justify-items: center; gap: 20px; padding-top: 8vh; text-align: center; }
+  .envelope {
+    position: relative; width: min(100%, 340px); aspect-ratio: 4 / 3;
+    background: var(--accent-soft); border: 0; border-radius: 14px; padding: 0;
+    box-shadow: 0 18px 40px -18px rgba(60, 20, 110, .55);
+    perspective: 900px;
+    animation: bob 3.2s ease-in-out infinite;
+  }
+  .envelope .pocket {
+    position: absolute; inset: 0; border-radius: 14px;
+    background: linear-gradient(160deg, var(--accent-soft-2), var(--accent-soft));
+    clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 100%, 0 100%);
+  }
+  .envelope .flap {
+    position: absolute; left: 0; right: 0; top: 0; height: 60%;
+    background: var(--accent-soft-2);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform .7s cubic-bezier(.5, 0, .2, 1);
+    border-radius: 14px 14px 0 0;
+  }
+  .envelope .seal {
+    position: absolute; left: 50%; top: 52%; width: 56px; height: 56px; translate: -50% -50%;
+    background: var(--accent); border-radius: 50%; display: grid; place-items: center;
+    box-shadow: 0 4px 10px rgba(40, 10, 80, .35); z-index: 2;
+    transition: opacity .3s;
+    animation: beat 1.6s ease-in-out infinite;
+  }
+  .envelope .seal svg { width: 26px; height: 26px; fill: var(--on-accent); }
+  .envelope .to {
+    position: absolute; left: 0; right: 0; bottom: 14%; text-align: center; z-index: 1;
+    font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; color: var(--ink);
+  }
+  .envelope.open { animation: none; }
+  .envelope.open .flap { transform: rotateX(180deg); }
+  .envelope.open .seal { opacity: 0; animation: none; }
+  .hint { color: var(--muted); font-weight: 600; }
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(-1deg); } }
+  @keyframes beat { 50% { transform: scale(1.12); } }
+
+  /* Card */
+  #card { display: grid; gap: 20px; animation: rise .7s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+    padding: 24px 22px;
+  }
+  .hero { text-align: center; display: grid; justify-items: center; gap: 6px; }
+  .eyebrow {
+    font-family: var(--font-display); font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    font-size: .8rem; color: var(--accent);
+  }
+  .name-wrap { position: relative; display: inline-block; padding: 0 10px; }
+  .hero h1 { font-size: clamp(2.6rem, 14vw, 4rem); font-weight: 700; color: var(--accent); }
+  .name { background: none; border: 0; padding: 0; color: inherit; font: inherit; line-height: inherit; }
+  .name.wiggle { animation: wiggle .6s ease; }
+  @keyframes wiggle { 20% { transform: rotate(-5deg) scale(1.06); } 50% { transform: rotate(5deg) scale(1.08); } 80% { transform: rotate(-2deg); } }
+  .tw { position: absolute; width: 18px; height: 18px; animation: twinkle 2.4s ease-in-out infinite; pointer-events: none; }
+  .tw svg { width: 100%; height: 100%; display: block; fill: var(--flame); }
+  .tw1 { left: -10px; top: 2px; }
+  .tw2 { right: -12px; top: -6px; width: 14px; height: 14px; animation-delay: -.8s; }
+  .tw2 svg { fill: var(--accent); }
+  .tw3 { right: -2px; bottom: 6px; width: 12px; height: 12px; animation-delay: -1.5s; }
+  @keyframes twinkle { 0%, 100% { transform: scale(.4) rotate(0deg); opacity: .4; } 50% { transform: scale(1.1) rotate(45deg); opacity: 1; } }
+  .name-hint { color: var(--muted); font-size: .85rem; font-weight: 600; }
+
+  .cake { margin-top: 10px; }
+  .cake button { background: none; border: 0; padding: 0; display: block; transition: transform .2s; }
+  .cake button:hover { transform: translateY(-3px); }
+  .cake svg { width: 180px; height: auto; display: block; overflow: visible; }
+  .cake .flame { transform-origin: 50% 100%; animation: flicker 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .cake.out .flame { display: none; }
+  .cake .smoke { display: none; }
+  .cake.out .smoke { display: block; }
+  @keyframes flicker { 50% { transform: scale(.88, 1.1) rotate(-3deg); } }
+  .cake-note { color: var(--muted); font-size: .95rem; font-weight: 600; min-height: 1.6em; }
+
+  .message { display: grid; gap: 14px; }
+  .message p { max-width: 62ch; }
+  .sign { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; color: var(--accent); }
+
+  /* Decision log */
+  .log h2, .fortune h2 { font-size: 1.35rem; }
+  .sub { color: var(--muted); font-size: .95rem; margin-top: 2px; }
+  .proposal {
+    margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft);
+    font-family: var(--font-display); font-weight: 500; font-size: 1.15rem; line-height: 1.3;
+  }
+  .rows { margin-top: 12px; display: grid; gap: 8px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .row .who { font-weight: 700; }
+  .row .who small { display: block; color: var(--muted); font-weight: 600; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
+  .pill {
+    font-weight: 700; font-size: .85rem; padding: 4px 12px; border-radius: 999px;
+    border: 1.5px solid var(--good); color: var(--good);
+  }
+  .log-foot { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .count { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .btn {
+    background: var(--accent); color: var(--on-accent); border: 0; border-radius: 999px;
+    padding: 10px 20px; font-weight: 700; transition: transform .15s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+
+  /* Certificate */
+  .cert { text-align: center; display: grid; justify-items: center; gap: 8px; border: 2px dashed var(--accent); }
+  .cert svg.rosette { width: 84px; height: 104px; display: block; }
+  .cert h2 { font-size: 1.6rem; color: var(--accent); }
+  .cert p { max-width: 38ch; }
+  .cert .cert-foot { color: var(--muted); font-size: .9rem; font-weight: 700; }
+
+  /* Fortune */
+  .fortune-text {
+    margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft);
+    font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; line-height: 1.35; min-height: 4.2em;
+    display: flex; align-items: center;
+  }
+  .fortune .btn { margin-top: 14px; }
+
+  /* Gift status */
+  .gift { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .gift .label { font-weight: 700; }
+  .gift .label small { display: block; color: var(--muted); font-weight: 600; }
+  .pill.pending { border-color: var(--accent); color: var(--accent); }
+
+  /* Garden */
+  .garden { display: flex; align-items: flex-end; justify-content: space-between; gap: 2px; padding: 0 4px; }
+  .gf { flex: 1; min-width: 0; max-width: 44px; height: auto; transform-origin: 50% 100%; animation: sway 3.4s ease-in-out infinite alternate; overflow: visible; }
+  @keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+  .footer { text-align: center; color: var(--muted); font-weight: 700; font-size: .9rem; }
+
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .envelope, .envelope .seal, .cake .flame, #card, .tw, .gf, .name.wiggle { animation: none; }
+    .envelope .flap { transition: none; }
+  }
+</style>
+
+</head>
+<body>
+<main>
+  <section id="envelope-view">
+    <button class="envelope" id="envelope" type="button" aria-label="Open Zelda's birthday card">
+      <span class="pocket"></span>
+      <span class="flap"></span>
+      <span class="seal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 2.8 4.5 6.5 4.5c2.1 0 3.8 1.2 5.5 3.2 1.7-2 3.4-3.2 5.5-3.2 3.7 0 5.6 3.8 4.1 7.2C19.5 16.4 12 21 12 21z"/></svg></span>
+      <span class="to">For Zelda</span>
+    </button>
+    <p class="hint">Tap the envelope</p>
+  </section>
+
+  <article id="card" hidden>
+    <section class="panel hero">
+      <p class="eyebrow">Happy belated birthday</p>
+      <div class="name-wrap">
+        <span class="tw tw1"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0Q10 10 20 10Q10 10 10 20Q10 10 0 10Q10 10 10 0z"/></svg></span>
+        <span class="tw tw2"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0Q10 10 20 10Q10 10 10 20Q10 10 0 10Q10 10 10 0z"/></svg></span>
+        <span class="tw tw3"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0Q10 10 20 10Q10 10 10 20Q10 10 0 10Q10 10 10 0z"/></svg></span>
+        <h1><button class="name" id="name" type="button" aria-label="Send Zelda some hearts">Zelda</button></h1>
+      </div>
+      <p class="name-hint">Tap her name</p>
+      <div class="cake" id="cake">
+        <button type="button" id="candle" aria-label="Blow out the candle">
+          <svg viewBox="0 0 180 150" aria-hidden="true">
+            <ellipse cx="90" cy="140" rx="78" ry="8" fill="var(--accent-soft-2)"/>
+            <rect x="22" y="92" width="136" height="46" rx="10" fill="var(--accent)"/>
+            <path d="M22 106c10 10 20 10 30 0s20 10 30 0 20 10 30 0 20 10 30 0 10 6 16 0v-6H22z" fill="var(--accent-soft)"/>
+            <rect x="40" y="62" width="100" height="34" rx="9" fill="var(--accent-soft-2)"/>
+            <path d="M40 76c8 8 16 8 25 0s17 8 25 0 17 8 25 0 17 8 25 0v-6H40z" fill="var(--surface)"/>
+            <rect x="85" y="34" width="10" height="30" rx="3" fill="var(--accent)"/>
+            <path class="flame" d="M90 12c7 8 9 14 9 18a9 9 0 0 1-18 0c0-4 2-10 9-18z" fill="var(--flame)"/>
+            <g class="smoke" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round">
+              <path d="M90 28c-6-6 6-10 0-18"/>
+            </g>
+          </svg>
+        </button>
+      </div>
+      <p class="cake-note" id="cake-note">Tap the candle and make a wish</p>
+    </section>
+
+    <section class="panel message">
+      <p>Happy belated birthday, Zelda.</p>
+      <p>Yes, belated. The executor got held up, and that one is on me. Your real gift is in progress. This one is to hold you over.</p>
+      <p>Thank you for every plan that started with "okay, hear me out." You were the mastermind behind every bad decision, and I carried out all of them. I would do it again, which says something about both of us.</p>
+      <p>Here's to another year of ideas. I'll be ready.</p>
+      <p class="sign">From Eddie, your executor</p>
+    </section>
+
+    <section class="panel log">
+      <h2>Decision log</h2>
+      <p class="sub">Every plan, reviewed and filed.</p>
+      <p class="proposal" id="proposal" aria-live="polite"></p>
+      <div class="rows">
+        <div class="row"><span class="who"><small>Mastermind</small>Zelda</span><span class="pill">Approved</span></div>
+        <div class="row"><span class="who"><small>Executor</small>Eddie</span><span class="pill">Executed</span></div>
+      </div>
+      <div class="log-foot">
+        <span class="count" id="count"></span>
+        <button class="btn" type="button" id="next">New proposal</button>
+      </div>
+    </section>
+
+    <section class="panel cert">
+      <svg class="rosette" viewBox="0 0 80 100" aria-hidden="true">
+        <path d="M26 58 L16 98 L30 90 L40 98 L44 62z" fill="var(--accent-soft-2)"/>
+        <path d="M54 58 L64 98 L50 90 L40 98 L36 62z" fill="var(--accent)"/>
+        <g fill="var(--accent)">
+          <circle cx="62" cy="40" r="11"/><circle cx="55.6" cy="55.6" r="11"/><circle cx="40" cy="62" r="11"/><circle cx="24.4" cy="55.6" r="11"/>
+          <circle cx="18" cy="40" r="11"/><circle cx="24.4" cy="24.4" r="11"/><circle cx="40" cy="18" r="11"/><circle cx="55.6" cy="24.4" r="11"/>
+          <circle cx="40" cy="40" r="24"/>
+        </g>
+        <circle cx="40" cy="40" r="17" fill="none" stroke="var(--on-accent)" stroke-width="2" stroke-dasharray="3 3"/>
+        <path d="M40 28Q40 40 52 40Q40 40 40 52Q40 40 28 40Q40 40 40 28z" fill="var(--flame)"/>
+      </svg>
+      <p class="eyebrow">Official certificate</p>
+      <h2>Mastermind of Bad Decisions</h2>
+      <p>Awarded to <strong>Zelda</strong> for outstanding achievement in ideas that seemed fine at the time.</p>
+      <p class="cert-foot">Executed by Eddie. Valid forever.</p>
+    </section>
+
+    <section class="panel fortune">
+      <h2>Zelda's fortune</h2>
+      <p class="sub">Your forecast for the year ahead.</p>
+      <p class="fortune-text" id="fortune" aria-live="polite">Tap the button to read it.</p>
+      <button class="btn" type="button" id="fortune-btn">Reveal my fortune</button>
+    </section>
+
+    <section class="panel gift">
+      <span class="label"><small>Physical gift</small>Executor assigned: Eddie</span>
+      <span class="pill pending">In progress</span>
+    </section>
+
+    <div class="garden" id="garden" aria-hidden="true"></div>
+    <p class="footer">Coded and executed by Eddie.</p>
+  </article>
+</main>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var envelope = document.getElementById("envelope");
+  var envView = document.getElementById("envelope-view");
+  var card = document.getElementById("card");
+  var cake = document.getElementById("cake");
+  var note = document.getElementById("cake-note");
+  var proposalEl = document.getElementById("proposal");
+  var countEl = document.getElementById("count");
+  var fortuneEl = document.getElementById("fortune");
+
+  /* Effects canvas: falling flowers plus bursts of confetti, hearts and sparkles */
+  var canvas = document.getElementById("fx");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, dpr = 1;
+  var parts = [], flowers = [];
+  var TAU = Math.PI * 2;
+  var petalColors = ["#C9A7FF", "#9D6BEA", "#FFB3D1", "#E7D3FF", "#FF9FC6"];
+  var confColors = ["#B98CFF", "#7B3FD4", "#E4D5F7", "#FF8FB8", "#F4B63F", "#FFFFFF"];
+  var heartColors = ["#FF8FB8", "#B98CFF", "#FF6FA5"];
+  var sparkColors = ["#F4B63F", "#B98CFF", "#FF8FB8"];
+
+  function size() {
+    dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  size();
+  window.addEventListener("resize", size);
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  function makeFlower(initial) {
+    return {
+      x: Math.random() * W,
+      y: initial ? Math.random() * H : -20 - Math.random() * 60,
+      s: 5 + Math.random() * 6, vy: .5 + Math.random() * .8,
+      sway: 14 + Math.random() * 26, ph: Math.random() * TAU, sp: .01 + Math.random() * .015,
+      r: Math.random() * TAU, vr: (Math.random() - .5) * .03,
+      c: pick(petalColors), t: 0
+    };
+  }
+  var flowerCount = Math.round(Math.min(40, Math.max(16, W / 22)));
+  for (var f = 0; f < flowerCount; f++) flowers.push(makeFlower(true));
+
+  function drawFlower(x, y, s, rot, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.fillStyle = color;
+    for (var k = 0; k < 5; k++) {
+      var a = k * TAU / 5;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * s * .55, Math.sin(a) * s * .55, s * .5, 0, TAU);
+      ctx.fill();
+    }
+    ctx.fillStyle = "#F4B63F";
+    ctx.beginPath();
+    ctx.arc(0, 0, s * .3, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawHeart(x, y, s) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + s * .3);
+    ctx.bezierCurveTo(x, y - s * .2, x - s * .9, y - s * .2, x - s * .9, y + s * .35);
+    ctx.bezierCurveTo(x - s * .9, y + s * .85, x, y + s * 1.05, x, y + s * 1.3);
+    ctx.bezierCurveTo(x, y + s * 1.05, x + s * .9, y + s * .85, x + s * .9, y + s * .35);
+    ctx.bezierCurveTo(x + s * .9, y - s * .2, x, y - s * .2, x, y + s * .3);
+    ctx.fill();
+  }
+  function drawSpark(s) {
+    ctx.beginPath();
+    ctx.moveTo(0, -s);
+    ctx.quadraticCurveTo(0, 0, s, 0);
+    ctx.quadraticCurveTo(0, 0, 0, s);
+    ctx.quadraticCurveTo(0, 0, -s, 0);
+    ctx.quadraticCurveTo(0, 0, 0, -s);
+    ctx.fill();
+  }
+
+  function confetti(x, y, n) {
+    if (reduce) return;
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * TAU, s = 4 + Math.random() * 9;
+      parts.push({
+        k: "conf", x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 6,
+        w: 6 + Math.random() * 6, h: 4 + Math.random() * 5,
+        r: Math.random() * 6, vr: (Math.random() - .5) * .4,
+        c: pick(confColors), life: 0, max: 160
+      });
+    }
+  }
+  function hearts(x, y, n) {
+    if (reduce) return;
+    for (var i = 0; i < n; i++) {
+      parts.push({
+        k: "heart", x: x + (Math.random() - .5) * 90, y: y + (Math.random() - .5) * 20,
+        vx: (Math.random() - .5) * 1.2, vy: -(1.2 + Math.random() * 1.8),
+        s: 5 + Math.random() * 7, c: pick(heartColors), life: 0, max: 90 + Math.random() * 40, ph: Math.random() * TAU
+      });
+    }
+  }
+  function spark(x, y) {
+    if (reduce) return;
+    parts.push({
+      k: "spark", x: x, y: y, vx: (Math.random() - .5) * 1.5, vy: (Math.random() - .5) * 1.5 + .4,
+      s: 3 + Math.random() * 4, r: Math.random() * 3, c: pick(sparkColors), life: 0, max: 28 + Math.random() * 14
+    });
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = .9;
+    for (var i = 0; i < flowers.length; i++) {
+      var fl = flowers[i];
+      fl.t++; fl.y += fl.vy; fl.r += fl.vr;
+      if (fl.y > H + 20) { flowers[i] = makeFlower(false); continue; }
+      drawFlower(fl.x + Math.sin(fl.ph + fl.t * fl.sp) * fl.sway, fl.y, fl.s, fl.r, fl.c);
+    }
+    parts = parts.filter(function (p) { return p.life < p.max && p.y < H + 40; });
+    for (var j = 0; j < parts.length; j++) {
+      var p = parts[j];
+      p.life++;
+      ctx.globalAlpha = Math.max(0, 1 - p.life / p.max);
+      ctx.fillStyle = p.c;
+      if (p.k === "conf") {
+        p.vy += .28; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      } else if (p.k === "heart") {
+        p.x += p.vx + Math.sin(p.ph + p.life * .12) * .6; p.y += p.vy;
+        drawHeart(p.x, p.y, p.s);
+      } else {
+        p.vy += .03; p.x += p.vx; p.y += p.vy; p.r += .08;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        drawSpark(p.s);
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  }
+  if (!reduce) requestAnimationFrame(tick);
+
+  /* Sparkle trail that follows a finger or cursor */
+  var lastTrail = 0;
+  window.addEventListener("pointermove", function (e) {
+    var now = performance.now();
+    if (now - lastTrail < 45) return;
+    lastTrail = now;
+    spark(e.clientX, e.clientY);
+  });
+
+  /* Open the envelope */
+  envelope.addEventListener("click", function () {
+    if (envelope.classList.contains("open")) return;
+    envelope.classList.add("open");
+    var r = envelope.getBoundingClientRect();
+    confetti(r.left + r.width / 2, r.top + r.height / 2, 70);
+    hearts(r.left + r.width / 2, r.top + r.height / 2, 12);
+    setTimeout(function () {
+      envView.hidden = true;
+      card.hidden = false;
+      window.scrollTo(0, 0);
+    }, reduce ? 0 : 750);
+  });
+
+  /* Name */
+  var nameBtn = document.getElementById("name");
+  nameBtn.addEventListener("click", function () {
+    nameBtn.classList.remove("wiggle");
+    void nameBtn.offsetWidth;
+    nameBtn.classList.add("wiggle");
+    var r = nameBtn.getBoundingClientRect();
+    hearts(r.left + r.width / 2, r.top + r.height / 2, 16);
+  });
+
+  /* Candle */
+  document.getElementById("candle").addEventListener("click", function () {
+    var out = cake.classList.toggle("out");
+    var r = this.getBoundingClientRect();
+    if (out) {
+      note.textContent = "Wish made. The mastermind already has a plan for it.";
+      confetti(r.left + r.width / 2, r.top + 20, 90);
+      hearts(r.left + r.width / 2, r.top + 20, 8);
+    } else {
+      note.textContent = "Relit. Make another wish.";
+    }
+  });
+
+  /* Decision log */
+  var proposals = [
+    "\"Okay, hear me out.\"",
+    "\"What's the worst that could happen?\"",
+    "\"Trust me, it'll be fine.\"",
+    "\"We'll figure it out when we get there.\"",
+    "\"It was only a little bit of a bad idea.\"",
+    "\"One more won't hurt.\"",
+    "\"Nobody needs to know.\"",
+    "\"I have a plan. You won't like it.\""
+  ];
+  var pi = 0, executed = 1;
+  function showProposal() {
+    proposalEl.textContent = proposals[pi];
+    countEl.textContent = "Plans executed: " + executed;
+  }
+  showProposal();
+  document.getElementById("next").addEventListener("click", function () {
+    pi = (pi + 1) % proposals.length;
+    executed++;
+    showProposal();
+    var r = this.getBoundingClientRect();
+    for (var k = 0; k < 6; k++) spark(r.left + Math.random() * r.width, r.top + Math.random() * r.height);
+  });
+
+  /* Fortune */
+  var fortunes = [
+    "Your next idea will be questionable. Eddie will say yes anyway.",
+    "A very bad idea is coming your way. It will be great.",
+    "Within the week you will say \"what's the worst that could happen.\"",
+    "Someone will blame you for something this year. They will be right.",
+    "This year's plans are already approved. Execution begins immediately.",
+    "Good news: the plan has no flaws. Bad news: that is the flaw.",
+    "Your lucky number is however many people you can drag into this.",
+    "You will be right about something this year. Eddie will act surprised."
+  ];
+  var fi = -1;
+  document.getElementById("fortune-btn").addEventListener("click", function () {
+    var n;
+    do { n = Math.floor(Math.random() * fortunes.length); } while (n === fi);
+    fi = n;
+    fortuneEl.textContent = fortunes[fi];
+    this.textContent = "Another one";
+    var r = this.getBoundingClientRect();
+    confetti(r.left + r.width / 2, r.top, 30);
+    for (var k = 0; k < 10; k++) spark(r.left + Math.random() * r.width, r.top - Math.random() * 30);
+  });
+
+  /* Garden: nine flowers on stems, each swaying on its own beat */
+  var garden = document.getElementById("garden");
+  var gColors = ["#B98CFF", "#FF8FB8", "#9D6BEA", "#FFB3D1", "#C9A7FF"];
+  var gHtml = "";
+  for (var g = 0; g < 9; g++) {
+    var gh = 80 + ((g * 37) % 50);
+    var gc = gColors[g % gColors.length];
+    var petals = "";
+    for (var q = 0; q < 5; q++) {
+      var ang = q * TAU / 5 - Math.PI / 2;
+      petals += '<circle cx="' + (20 + Math.cos(ang) * 6.5).toFixed(1) + '" cy="' + (16 + Math.sin(ang) * 6.5).toFixed(1) + '" r="5.5" fill="' + gc + '"/>';
+    }
+    var ly = Math.round(gh * .62);
+    gHtml += '<svg class="gf" viewBox="0 0 40 ' + gh + '" style="animation-delay:' + (-g * .45).toFixed(2) + 's;animation-duration:' + (3 + (g % 3) * .6).toFixed(1) + 's">' +
+      '<path d="M20 26V' + gh + '" stroke="var(--stem)" stroke-width="3" stroke-linecap="round" fill="none"/>' +
+      '<path d="M20 ' + ly + 'q-14 -4 -16 -14q12 0 16 14z" fill="var(--stem)"/>' +
+      '<path d="M20 ' + (ly - 14) + 'q14 -4 16 -14q-12 0 -16 14z" fill="var(--stem)"/>' +
+      petals + '<circle cx="20" cy="16" r="4" fill="#F4B63F"/></svg>';
+  }
+  garden.innerHTML = gHtml;
+})();
+</script>
+</body>
+</html>
+
